@@ -25,13 +25,14 @@ export class ProfessionalsController {
   async getDefault() {
     const prof = await this.professionalsService.findDefault();
     if (!prof) throw new NotFoundException('No doctor configured');
+    const bookingLink = this.professionalsService.getBookingUrl(prof.slug);
     return {
       id: prof.id,
       name: prof.user?.name || 'Docteur',
       specialty: prof.specialty,
       bio: prof.bio,
       slug: prof.slug,
-      bookingLink: prof.bookingLink,
+      bookingLink,
     };
   }
 
@@ -40,7 +41,8 @@ export class ProfessionalsController {
   async getDefaultQr() {
     const prof = await this.professionalsService.findDefault();
     if (!prof) throw new NotFoundException('No doctor configured');
-    return this.professionalsService.getQrCodeDataUrl(prof.bookingLink);
+    const bookingLink = this.professionalsService.getBookingUrl(prof.slug);
+    return this.professionalsService.getQrCodeDataUrl(bookingLink);
   }
 
   @Post()
@@ -62,10 +64,11 @@ export class ProfessionalsController {
     if (!professional) {
       throw new NotFoundException('Professional profile not found');
     }
+    const bookingLink = this.professionalsService.getBookingUrl(professional.slug);
     return {
       id: professional.id,
       slug: professional.slug,
-      bookingLink: professional.bookingLink,
+      bookingLink,
       specialty: professional.specialty,
       bio: professional.bio,
     };
@@ -88,13 +91,14 @@ export class ProfessionalsController {
   @Public()
   async getBookingPageData(@Param('slug') slug: string) {
     const professional = await this.professionalsService.findBySlug(slug);
+    const bookingLink = this.professionalsService.getBookingUrl(professional.slug);
     return {
       id: professional.id,
       name: professional.user?.name || 'Docteur',
       specialty: professional.specialty,
       bio: professional.bio,
       slug: professional.slug,
-      bookingLink: professional.bookingLink,
+      bookingLink,
     };
   }
 
@@ -102,6 +106,7 @@ export class ProfessionalsController {
   @Public()
   async getQrCode(@Param('slug') slug: string) {
     const professional = await this.professionalsService.findBySlug(slug);
-    return this.professionalsService.getQrCodeDataUrl(professional.bookingLink);
+    const bookingLink = this.professionalsService.getBookingUrl(professional.slug);
+    return this.professionalsService.getQrCodeDataUrl(bookingLink);
   }
 }

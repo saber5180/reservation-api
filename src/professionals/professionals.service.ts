@@ -79,10 +79,17 @@ export class ProfessionalsService {
     });
   }
 
+  getBookingUrl(slug: string): string {
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    return `${baseUrl}/booking/${slug}`;
+  }
+
   async getQrCodeDataUrl(bookingLink: string): Promise<{ dataUrl: string }> {
     const dataUrl = await QRCode.toDataURL(bookingLink, {
-      width: 300,
+      width: 400,
       margin: 2,
+      errorCorrectionLevel: 'H',
+      color: { dark: '#0284c7', light: '#ffffff' },
     });
     return { dataUrl };
   }
