@@ -29,6 +29,7 @@ import { Otp } from './otp/otp.entity';
       database: process.env.DB_DATABASE ?? 'reservation_system',
       entities: [User, Professional, Reservation, Availability, Otp],
       synchronize: true,
+      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     UsersModule,
