@@ -20,7 +20,7 @@ export class AuthService {
     const code = await this.otpService.sendOtp(phone);
     return {
       message: 'OTP sent',
-      otp: process.env.NODE_ENV !== 'production' ? code : undefined,
+      otp: code,
     };
   }
 
