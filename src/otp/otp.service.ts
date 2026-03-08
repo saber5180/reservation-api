@@ -40,7 +40,7 @@ export class OtpService {
         await this.vonage.sms.send({
           to,
           from: this.vonageFrom,
-          text: `Votre code ResaPro : ${code}`,
+          text: `Votre code DentaRDV : ${code}`,
         });
         this.logger.log(`SMS sent to ${to}`);
       } catch (err) {
