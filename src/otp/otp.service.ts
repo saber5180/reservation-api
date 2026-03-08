@@ -2,28 +2,27 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { Otp } from './otp.entity';
-import * as Twilio from 'twilio';
+import { Vonage } from '@vonage/server-sdk';
 
 @Injectable()
 export class OtpService {
   private readonly logger = new Logger(OtpService.name);
-  private twilioClient: Twilio.Twilio | null = null;
-  private twilioFrom: string | null = null;
+  private vonage: Vonage | null = null;
+  private vonageFrom: string;
 
   constructor(
     @InjectRepository(Otp)
     private readonly otpRepository: Repository<Otp>,
   ) {
-    const sid = process.env.TWILIO_ACCOUNT_SID;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const from = process.env.TWILIO_PHONE_NUMBER;
+    const apiKey = process.env.VONAGE_API_KEY;
+    const apiSecret = process.env.VONAGE_API_SECRET;
 
-    if (sid && token && from) {
-      this.twilioClient = Twilio.default(sid, token);
-      this.twilioFrom = from;
-      this.logger.log('Twilio SMS enabled');
+    if (apiKey && apiSecret) {
+      this.vonage = new Vonage({ apiKey, apiSecret });
+      this.vonageFrom = process.env.VONAGE_FROM || 'ResaPro';
+      this.logger.log('Vonage SMS enabled');
     } else {
-      this.logger.warn('Twilio not configured — OTP codes will be logged to console only');
+      this.logger.warn('Vonage not configured — OTP codes logged to console only');
     }
   }
 
@@ -35,14 +34,15 @@ export class OtpService {
       this.otpRepository.create({ phone, code, expiresAt }),
     );
 
-    if (this.twilioClient && this.twilioFrom) {
+    if (this.vonage) {
       try {
-        await this.twilioClient.messages.create({
-          body: `Votre code RésaPro : ${code}`,
-          from: this.twilioFrom,
-          to: phone,
+        const to = phone.replace(/[^0-9+]/g, '');
+        await this.vonage.sms.send({
+          to,
+          from: this.vonageFrom,
+          text: `Votre code ResaPro : ${code}`,
         });
-        this.logger.log(`SMS sent to ${phone}`);
+        this.logger.log(`SMS sent to ${to}`);
       } catch (err) {
         this.logger.error(`SMS failed for ${phone}: ${err.message}`);
       }
