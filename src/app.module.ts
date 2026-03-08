@@ -20,17 +20,26 @@ import { Otp } from './otp/otp.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
-      port: parseInt(process.env.DB_PORT ?? '5432', 10),
-      username: process.env.DB_USERNAME ?? 'postgres',
-      password: process.env.DB_PASSWORD ?? 'postgres',
-      database: process.env.DB_DATABASE ?? 'reservation_system',
-      entities: [User, Professional, Reservation, Availability, Otp],
-      synchronize: true,
-      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    }),
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            entities: [User, Professional, Reservation, Availability, Otp],
+            synchronize: true,
+            ssl: { rejectUnauthorized: false },
+          }
+        : {
+            type: 'postgres',
+            host: process.env.DB_HOST ?? 'localhost',
+            port: parseInt(process.env.DB_PORT ?? '5432', 10),
+            username: process.env.DB_USERNAME ?? 'postgres',
+            password: process.env.DB_PASSWORD ?? 'postgres',
+            database: process.env.DB_DATABASE ?? 'reservation_system',
+            entities: [User, Professional, Reservation, Availability, Otp],
+            synchronize: true,
+          },
+    ),
     AuthModule,
     UsersModule,
     ProfessionalsModule,
