@@ -1,0 +1,34 @@
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // CORS : en prod, fixer FRONTEND_URL=https://votre-front.vercel.app (plusieurs → séparées par virgule)
+  const front = process.env.FRONTEND_URL?.trim();
+  app.enableCors({
+    origin: front
+      ? front.split(',').map((s) => s.trim()).filter(Boolean)
+      : true,
+    credentials: true,
+  });
+
+  // Global validation pipe - automatically validates DTOs
+  // transform: true converts plain objects to DTO class instances
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip properties not in DTO
+      forbidNonWhitelisted: true, // Throw if extra properties sent
+      transform: true, // Auto-transform payloads to DTO types
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Application is running on port ${port}`);
+}
+bootstrap();
